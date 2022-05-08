@@ -11,36 +11,36 @@ fn fail(message: &str) -> ! {
 }
 
 fn main() {
-    use std::fs;
     use cmd::*;
     use index::Index;
+    use std::fs;
 
     let cmd = Command::parse();
 
-    let index_file = cmd.index_file.unwrap_or_else(
-        || dirs::config_dir().expect("Failed to get configuration directory!").join(INDEX_FILENAME)
-    );
+    let index_file = cmd.index_file.unwrap_or_else(|| {
+        dirs::config_dir()
+            .expect("Failed to get configuration directory!")
+            .join(INDEX_FILENAME)
+    });
 
     let mut index = if index_file.exists() {
-        let content = fs::read_to_string(&index_file).unwrap_or_else(|e|
-            fail(&format!("Failed to read index file: {e}"))
-        );
+        let content = fs::read_to_string(&index_file)
+            .unwrap_or_else(|e| fail(&format!("Failed to read index file: {e}")));
 
-        Index::decode(&content).unwrap_or_else(|e| {
-            fail(&format!("Failed to decode index: {e}"))
-        })
+        Index::decode(&content).unwrap_or_else(|e| fail(&format!("Failed to decode index: {e}")))
     } else {
         Index::new()
     };
 
     match cmd.action {
         Action::Add(Add { path }) => {
-            index.add(path).unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
+            index
+                .add(path)
+                .unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
 
-            fs::write(&index_file, index.encode()).unwrap_or_else(
-                |e| fail(&format!("Failed to write index file: {e}"))
-            );
-        },
+            fs::write(&index_file, index.encode())
+                .unwrap_or_else(|e| fail(&format!("Failed to write index file: {e}")));
+        }
 
         Action::Query(Query { query, after }) => {
             if query.is_empty() {
@@ -51,19 +51,17 @@ fn main() {
 
             match result {
                 Some(result) => println!("{result}"),
-                None => fail("No result found")
+                None => fail("No result found"),
             }
-        },
+        }
 
         Action::List(List {}) => {
             for dir in index.list() {
                 println!("{dir}");
             }
-        },
+        }
 
-        Action::Del(Del { path }) => {
-            index.remove(&path).unwrap()
-        },
+        Action::Del(Del { path }) => index.remove(&path).unwrap(),
 
         Action::Clear(Clear {}) => {
             index.clear();

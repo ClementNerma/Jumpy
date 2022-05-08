@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Parser, Subcommand, Args};
+use clap::{Args, Parser, Subcommand};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -9,7 +9,7 @@ pub struct Command {
     pub index_file: Option<PathBuf>,
 
     #[clap(subcommand)]
-    pub action: Action
+    pub action: Action,
 }
 
 #[derive(Subcommand)]
@@ -27,13 +27,13 @@ pub enum Action {
     Del(Del),
 
     #[clap(about = "Clear the database")]
-    Clear(Clear)
+    Clear(Clear),
 }
 
 #[derive(Args)]
 pub struct Add {
     #[clap()]
-    pub path: String
+    pub path: String,
 }
 
 #[derive(Args)]
@@ -42,7 +42,7 @@ pub struct Query {
     pub query: String,
 
     #[clap(short, long)]
-    pub after: Option<String>
+    pub after: Option<String>,
 }
 
 #[derive(Args)]
@@ -51,7 +51,7 @@ pub struct List {}
 #[derive(Args)]
 pub struct Del {
     #[clap()]
-    pub path: String
+    pub path: String,
 }
 
 #[derive(Args)]

@@ -1,12 +1,18 @@
-use std::{collections::{BTreeMap, btree_map::Entry}, path::Path, fs};
+use std::{
+    collections::{btree_map::Entry, BTreeMap},
+    fs,
+    path::Path,
+};
 
 pub struct Index {
-    scored_entries: BTreeMap<String, u64>
+    scored_entries: BTreeMap<String, u64>,
 }
 
 impl Index {
     pub fn new() -> Self {
-        Self { scored_entries: BTreeMap::new() }
+        Self {
+            scored_entries: BTreeMap::new(),
+        }
     }
 
     pub fn add(&mut self, path: String) -> Result<(), String> {
@@ -27,10 +33,10 @@ impl Index {
         match self.scored_entries.entry(path) {
             Entry::Occupied(mut entry) => {
                 *entry.get_mut() += 1;
-            },
+            }
             Entry::Vacant(entry) => {
                 entry.insert(1);
-            },
+            }
         }
 
         Ok(())
@@ -39,9 +45,18 @@ impl Index {
     pub fn query(&self, query: &str, after: Option<&str>) -> Option<String> {
         let query = query.to_lowercase();
 
-        let mut entries = self.scored_entries
+        let mut entries = self
+            .scored_entries
             .iter()
-            .filter(|(path, _)| Path::new(path).file_name().unwrap().to_str().unwrap().to_lowercase().contains(&query))
+            .filter(|(path, _)| {
+                Path::new(path)
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_lowercase()
+                    .contains(&query)
+            })
             .collect::<Vec<_>>();
 
         entries.sort_by(|a, b| b.1.cmp(a.1));
@@ -51,7 +66,10 @@ impl Index {
 
             if let Some(index) = index {
                 let count = entries.len();
-                entries = entries.into_iter().skip(if index + 1 < count { index + 1 } else { 0 }).collect();
+                entries = entries
+                    .into_iter()
+                    .skip(if index + 1 < count { index + 1 } else { 0 })
+                    .collect();
             }
         }
 
@@ -69,7 +87,7 @@ impl Index {
     pub fn remove(&mut self, path: &str) -> Result<(), &'static str> {
         match self.scored_entries.remove(path) {
             Some(_) => Ok(()),
-            None => Err("Provided directory is not registered")
+            None => Err("Provided directory is not registered"),
         }
     }
 
@@ -92,8 +110,13 @@ impl Index {
         for line in input.lines() {
             n += 1;
 
-            let split = line.find(' ').ok_or_else(|| format!("Missing whitespace delimited at line {n}"))?;
-            let score = &line[0..split].parse::<u64>().map_err(|e| format!("Failed to parse score at line {n}: {e}"))?;    
+            let split = line
+                .find(' ')
+                .ok_or_else(|| format!("Missing whitespace delimited at line {n}"))?;
+
+            let score = &line[0..split]
+                .parse::<u64>()
+                .map_err(|e| format!("Failed to parse score at line {n}: {e}"))?;
 
             let path = &line[split + 1..];
 
@@ -103,7 +126,7 @@ impl Index {
 
             scored_entries.insert(path.to_string(), *score);
         }
-        
+
         Ok(Self { scored_entries })
     }
 }
