@@ -32,14 +32,17 @@ fn main() {
         Index::new()
     };
 
+    let flush_index = |index: Index| fs::write(&index_file, index.encode()).unwrap_or_else(
+        |e| fail(&format!("Failed to write index file: {e}"))
+    );
+
     match cmd.action {
         Action::Add(Add { path }) => {
             index
                 .add(path)
                 .unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
 
-            fs::write(&index_file, index.encode())
-                .unwrap_or_else(|e| fail(&format!("Failed to write index file: {e}")));
+            flush_index(index);
         }
 
         Action::Query(Query { query, after }) => {
@@ -61,10 +64,16 @@ fn main() {
             }
         }
 
-        Action::Del(Del { path }) => index.remove(&path).unwrap(),
+        Action::Del(Del { path }) => {
+            index.remove(&path).unwrap();
+
+            flush_index(index);
+        },
 
         Action::Clear(Clear {}) => {
             index.clear();
+
+            flush_index(index);
         }
     }
 }
