@@ -61,6 +61,10 @@ fn main() {
             }
         },
 
+        Action::Del(Del { path }) => {
+            index.remove(&path).unwrap()
+        },
+
         Action::Clear(Clear {}) => {
             index.clear();
         }

@@ -66,6 +66,13 @@ impl Index {
         entries.iter().map(|entry| entry.0).collect()
     }
 
+    pub fn remove(&mut self, path: &str) -> Result<(), &'static str> {
+        match self.scored_entries.remove(path) {
+            Some(_) => Ok(()),
+            None => Err("Provided directory is not registered")
+        }
+    }
+
     pub fn clear(&mut self) {
         self.scored_entries = BTreeMap::new();
     }

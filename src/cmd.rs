@@ -23,6 +23,9 @@ pub enum Action {
     #[clap(about = "List all registered directories")]
     List(List),
 
+    #[clap(about = "Delete a registered directory from the database")]
+    Del(Del),
+
     #[clap(about = "Clear the database")]
     Clear(Clear)
 }
@@ -44,6 +47,12 @@ pub struct Query {
 
 #[derive(Args)]
 pub struct List {}
+
+#[derive(Args)]
+pub struct Del {
+    #[clap()]
+    pub path: String
+}
 
 #[derive(Args)]
 pub struct Clear {}
