@@ -1,3 +1,7 @@
+#![forbid(unsafe_code)]
+#![forbid(unused_must_use)]
+#![forbid(unused_allocation)]
+
 mod cmd;
 mod index;
 
@@ -32,9 +36,10 @@ fn main() {
         Index::new()
     };
 
-    let flush_index = |index: Index| fs::write(&index_file, index.encode()).unwrap_or_else(
-        |e| fail(&format!("Failed to write index file: {e}"))
-    );
+    let flush_index = |index: Index| {
+        fs::write(&index_file, index.encode())
+            .unwrap_or_else(|e| fail(&format!("Failed to write index file: {e}")))
+    };
 
     match cmd.action {
         Action::Add(Add { path }) => {
@@ -68,7 +73,7 @@ fn main() {
             index.remove(&path).unwrap();
 
             flush_index(index);
-        },
+        }
 
         Action::Clear(Clear {}) => {
             index.clear();
