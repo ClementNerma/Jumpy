@@ -84,7 +84,7 @@ impl Index {
             .map(IndexEntry::from)
             .collect::<Vec<_>>();
 
-        entries.sort();
+        entries.sort_by(|a, b| b.cmp(a));
 
         if let Some(after) = after {
             let index = entries.iter().position(|result| result.path == after);
@@ -133,7 +133,7 @@ impl Index {
     pub fn list(&self) -> Vec<&str> {
         let mut entries: Vec<_> = self.scored_entries.iter().map(IndexEntry::from).collect();
 
-        entries.sort();
+        entries.sort_by(|a, b| b.cmp(a));
 
         entries.iter().map(|result| result.path).collect()
     }
