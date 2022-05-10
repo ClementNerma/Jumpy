@@ -40,6 +40,9 @@ pub enum Action {
 
     #[clap(about = "Clear the database")]
     Clear(Clear),
+
+    #[clap(about = "Output the entire database (plain text)")]
+    Export(Export),
 }
 
 #[derive(Args)]
@@ -80,3 +83,6 @@ pub struct Optimize {}
 
 #[derive(Args)]
 pub struct Clear {}
+
+#[derive(Args)]
+pub struct Export {}

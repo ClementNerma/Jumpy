@@ -88,6 +88,8 @@ fn main() {
 
         Action::Optimize(Optimize {}) => index.optimize(),
 
+        Action::Export(Export {}) => index.export(),
+
         Action::Clear(Clear {}) => {
             index.clear();
         }

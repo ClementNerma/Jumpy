@@ -151,6 +151,10 @@ impl Index {
         }
     }
 
+    pub fn export(&mut self) {
+        println!("{}", self.encode());
+    }
+
     pub fn clear(&mut self) {
         self.scored_entries = HashMap::new();
     }
