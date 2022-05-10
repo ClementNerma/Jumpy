@@ -86,13 +86,24 @@ fn main() {
             index.remove(&path).unwrap();
         }
 
+        Action::Clear(Clear {}) => {
+            index.clear();
+        }
+
         Action::Optimize(Optimize {}) => index.optimize(),
 
         Action::Export(Export {}) => index.export(),
 
-        Action::Clear(Clear {}) => {
-            index.clear();
-        }
+        Action::Path(Path { lossily }) => match index_file.to_str() {
+            Some(lossless) => println!("{}", lossless),
+            None => {
+                if lossily {
+                    println!("{}", index_file.to_string_lossy())
+                } else {
+                    fail("Path to index file contains invalid UTF-8 characters. Use --lossily to print it nonetheless.");
+                }
+            }
+        },
     }
 
     let updated = index.encode();

@@ -43,6 +43,9 @@ pub enum Action {
 
     #[clap(about = "Output the entire database (plain text)")]
     Export(Export),
+
+    #[clap(about = "Get the path of the index file")]
+    Path(Path),
 }
 
 #[derive(Args)]
@@ -86,3 +89,13 @@ pub struct Clear {}
 
 #[derive(Args)]
 pub struct Export {}
+
+#[derive(Args)]
+pub struct Path {
+    #[clap(
+        short,
+        long,
+        help = "If the path contains invalid UTF-8 characters, don't fail and print it lossily instead"
+    )]
+    pub lossily: bool,
+}
