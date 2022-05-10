@@ -14,7 +14,7 @@ For ZSH shells:
 
 ```shell
 function z() {
-    local result=$(jumpy query "$1" --after "$PWD")
+    local result=$(jumpy query "$1" --checked --after "$PWD")
 
     if [[ -n $result ]]; then
         export __JUMPY_DONT_REGISTER=1
@@ -29,7 +29,7 @@ function jumpy_handler() {
     fi
 
     emulate -L zsh
-    jumpy add "$PWD"
+    jumpy inc "$PWD"
 }
 
 chpwd_functions=(${chpwd_functions[@]} "jumpy_handler")
