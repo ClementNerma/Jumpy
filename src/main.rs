@@ -50,6 +50,14 @@ fn main() {
             flush_index(index);
         }
 
+        Action::Inc(Inc { path }) => {
+            index
+                .inc(path)
+                .unwrap_or_else(|e| fail(&format!("Failed to increment directory: {e}")));
+
+            flush_index(index);
+        }
+
         Action::Query(Query { query, after }) => {
             if query.is_empty() {
                 fail("Please provide a query to search from.");

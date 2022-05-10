@@ -14,8 +14,17 @@ pub struct Command {
 
 #[derive(Subcommand)]
 pub enum Action {
-    #[clap(about = "Add a new directory or increment an existing one's score")]
+    #[clap(
+        about = "Add a new directory if not yet registered",
+        long_about = "Does nothing if the directory is already registered"
+    )]
     Add(Add),
+
+    #[clap(
+        about = "Increment a registered directory's score or add it to the database",
+        long_about = "Adds the directory to the database if it is not registered yet"
+    )]
+    Inc(Inc),
 
     #[clap(about = "Find the most relevant directory for the provided query")]
     Query(Query),
@@ -32,6 +41,12 @@ pub enum Action {
 
 #[derive(Args)]
 pub struct Add {
+    #[clap()]
+    pub path: String,
+}
+
+#[derive(Args)]
+pub struct Inc {
     #[clap()]
     pub path: String,
 }

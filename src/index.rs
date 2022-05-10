@@ -15,7 +15,7 @@ impl Index {
         }
     }
 
-    pub fn add(&mut self, path: String) -> Result<(), String> {
+    pub fn add_or_inc(&mut self, path: String, inc_if_exists: bool) -> Result<(), String> {
         if path.is_empty() {
             return Err("Please provide a valid path.".to_string());
         }
@@ -32,7 +32,9 @@ impl Index {
 
         match self.scored_entries.entry(path) {
             Entry::Occupied(mut entry) => {
-                *entry.get_mut() += 1;
+                if inc_if_exists {
+                    *entry.get_mut() += 1;
+                }
             }
             Entry::Vacant(entry) => {
                 entry.insert(1);
@@ -40,6 +42,14 @@ impl Index {
         }
 
         Ok(())
+    }
+
+    pub fn add(&mut self, path: String) -> Result<(), String> {
+        self.add_or_inc(path, false)
+    }
+
+    pub fn inc(&mut self, path: String) -> Result<(), String> {
+        self.add_or_inc(path, true)
     }
 
     pub fn query(&self, query: &str, after: Option<&str>) -> Option<String> {
