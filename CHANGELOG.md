@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.1 (2022-05-10)
+
+* **NEW:** `inc <path> --top` subcommand to assign the maximum score to the provided directory
+
 ## v0.3.0 (2022-05-10)
 
 * **NEW:** `export` subcommand
