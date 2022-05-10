@@ -27,18 +27,17 @@ fn main() {
             .join(INDEX_FILENAME)
     });
 
-    let mut index = if index_file.exists() {
+    let (mut index, source) = if index_file.exists() {
         let content = fs::read_to_string(&index_file)
             .unwrap_or_else(|e| fail(&format!("Failed to read index file: {e}")));
 
-        Index::decode(&content).unwrap_or_else(|e| fail(&format!("Failed to decode index: {e}")))
+        (
+            Index::decode(&content)
+                .unwrap_or_else(|e| fail(&format!("Failed to decode index: {e}"))),
+            content,
+        )
     } else {
-        Index::new()
-    };
-
-    let flush_index = |index: Index| {
-        fs::write(&index_file, index.encode())
-            .unwrap_or_else(|e| fail(&format!("Failed to write index file: {e}")))
+        (Index::new(), String::new())
     };
 
     match cmd.action {
@@ -46,16 +45,12 @@ fn main() {
             index
                 .add(path)
                 .unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
-
-            flush_index(index);
         }
 
         Action::Inc(Inc { path }) => {
             index
                 .inc(path)
                 .unwrap_or_else(|e| fail(&format!("Failed to increment directory: {e}")));
-
-            flush_index(index);
         }
 
         Action::Query(Query { query, after }) => {
@@ -79,14 +74,17 @@ fn main() {
 
         Action::Del(Del { path }) => {
             index.remove(&path).unwrap();
-
-            flush_index(index);
         }
 
         Action::Clear(Clear {}) => {
             index.clear();
-
-            flush_index(index);
         }
+    }
+
+    let updated = index.encode();
+
+    if updated != source {
+        fs::write(&index_file, updated)
+            .unwrap_or_else(|e| fail(&format!("Failed to write index file: {e}")))
     }
 }
