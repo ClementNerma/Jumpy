@@ -86,6 +86,8 @@ fn main() {
             index.remove(&path).unwrap();
         }
 
+        Action::Optimize(Optimize {}) => index.optimize(),
+
         Action::Clear(Clear {}) => {
             index.clear();
         }

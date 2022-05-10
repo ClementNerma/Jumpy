@@ -137,6 +137,20 @@ impl Index {
         }
     }
 
+    pub fn optimize(&mut self) {
+        let mut to_remove = vec![];
+
+        for path in self.scored_entries.keys() {
+            if !Path::new(path).exists() {
+                to_remove.push(path.to_string());
+            }
+        }
+
+        for path in to_remove {
+            self.remove(&path).unwrap();
+        }
+    }
+
     pub fn clear(&mut self) {
         self.scored_entries = BTreeMap::new();
     }
