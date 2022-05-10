@@ -53,12 +53,20 @@ fn main() {
                 .unwrap_or_else(|e| fail(&format!("Failed to increment directory: {e}")));
         }
 
-        Action::Query(Query { query, after }) => {
+        Action::Query(Query {
+            query,
+            after,
+            checked,
+        }) => {
             if query.is_empty() {
                 fail("Please provide a query to search from.");
             }
 
-            let result = index.query(&query, after.as_deref());
+            let result = if checked {
+                index.query_checked(&query, after.as_deref())
+            } else {
+                index.query_unchecked(&query, after.as_deref()).cloned()
+            };
 
             match result {
                 Some(result) => println!("{result}"),

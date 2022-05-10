@@ -58,6 +58,9 @@ pub struct Query {
 
     #[clap(short, long)]
     pub after: Option<String>,
+
+    #[clap(short, long)]
+    pub checked: bool,
 }
 
 #[derive(Args)]

@@ -52,7 +52,7 @@ impl Index {
         self.add_or_inc(path, true)
     }
 
-    pub fn query(&self, query: &str, after: Option<&str>) -> Option<String> {
+    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<(&String, &u64)> {
         let query = query.to_lowercase();
 
         let mut entries = self
@@ -83,7 +83,35 @@ impl Index {
             }
         }
 
-        entries.get(0).map(|entry| entry.0.clone())
+        entries
+    }
+
+    pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&String> {
+        self.query_all(query, after).get(0).map(|result| result.0)
+    }
+
+    pub fn query_checked(&mut self, query: &str, after: Option<&str>) -> Option<String> {
+        let mut to_remove = vec![];
+
+        let path = self
+            .query_all(query, after)
+            .iter()
+            .filter(|(path, _)| {
+                if Path::new(path).exists() {
+                    true
+                } else {
+                    to_remove.push(String::clone(path));
+                    false
+                }
+            })
+            .next()
+            .map(|(path, _)| String::clone(path))?;
+
+        for path in to_remove {
+            self.remove(&path).unwrap();
+        }
+
+        Some(path)
     }
 
     pub fn list(&self) -> Vec<&String> {
