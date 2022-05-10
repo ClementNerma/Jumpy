@@ -1,9 +1,14 @@
 # CHANGELOG
 
+## v0.1.3 (2022-05-10)
+
+* **NEW:** `query <path> --checked` to find the first existing directory (previous ones will be removed from database)
+* **STABILITY:** Automatically check when database changes need to be flushed to the disk
+
 ## v0.1.2 (2022-05-10)
 
-* **BREAKING:** The `add <path>` subcommand doesn't increment registered directories anymore
-* **NEW:** The `inc <path>` replaces the previous `add <path>` subcommand's behaviour
+* **BREAKING:** `add <path>` subcommand doesn't increment registered directories anymore
+* **NEW:** `inc <path>` replaces the previous `add <path>` subcommand's behaviour
 
 ## v0.1.1 (2022-05-08)
 
