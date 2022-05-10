@@ -156,11 +156,15 @@ impl Index {
     }
 
     pub fn encode(&self) -> String {
-        self.scored_entries
+        let mut lines = self
+            .scored_entries
             .iter()
             .map(|(path, score)| format!("{} {}", *score, path))
-            .collect::<Vec<_>>()
-            .join("\n")
+            .collect::<Vec<_>>();
+
+        lines.sort_by(|a, b| b.cmp(a));
+
+        lines.join("\n")
     }
 
     pub fn decode(input: &str) -> Result<Self, String> {
