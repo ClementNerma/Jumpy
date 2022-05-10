@@ -113,7 +113,7 @@ impl Index {
         let path = self
             .query_all(query, after)
             .iter()
-            .filter(|result| {
+            .find(|result| {
                 if Path::new(result.path).exists() {
                     true
                 } else {
@@ -121,7 +121,6 @@ impl Index {
                     false
                 }
             })
-            .next()
             .map(|result| result.path.to_string())?;
 
         for path in to_remove {
@@ -229,7 +228,7 @@ impl<'a> From<(&'a String, &'a u64)> for IndexEntry<'a> {
 
 impl<'a> PartialOrd for IndexEntry<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(&other))
+        Some(self.cmp(other))
     }
 }
 
