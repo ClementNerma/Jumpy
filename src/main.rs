@@ -65,7 +65,9 @@ fn main() {
             let result = if checked {
                 index.query_checked(&query, after.as_deref())
             } else {
-                index.query_unchecked(&query, after.as_deref()).cloned()
+                index
+                    .query_unchecked(&query, after.as_deref())
+                    .map(str::to_string)
             };
 
             match result {

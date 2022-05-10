@@ -1,4 +1,5 @@
 use std::{
+    cmp::Ordering,
     collections::{btree_map::Entry, BTreeMap},
     fs,
     path::Path,
@@ -52,7 +53,7 @@ impl Index {
         self.add_or_inc(path, true)
     }
 
-    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<(&String, &u64)> {
+    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexQueryResult> {
         let query = query.to_lowercase();
 
         let mut entries = self
@@ -67,12 +68,13 @@ impl Index {
                     .to_lowercase()
                     .contains(&query)
             })
+            .map(IndexQueryResult::from)
             .collect::<Vec<_>>();
 
-        entries.sort_by(|a, b| b.1.cmp(a.1));
+        entries.sort();
 
         if let Some(after) = after {
-            let index = entries.iter().position(|entry| entry.0 == after);
+            let index = entries.iter().position(|result| result.path == after);
 
             if let Some(index) = index {
                 let count = entries.len();
@@ -86,8 +88,10 @@ impl Index {
         entries
     }
 
-    pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&String> {
-        self.query_all(query, after).get(0).map(|result| result.0)
+    pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&str> {
+        self.query_all(query, after)
+            .get(0)
+            .map(|result| result.path)
     }
 
     pub fn query_checked(&mut self, query: &str, after: Option<&str>) -> Option<String> {
@@ -96,16 +100,16 @@ impl Index {
         let path = self
             .query_all(query, after)
             .iter()
-            .filter(|(path, _)| {
-                if Path::new(path).exists() {
+            .filter(|result| {
+                if Path::new(result.path).exists() {
                     true
                 } else {
-                    to_remove.push(String::clone(path));
+                    to_remove.push(result.path.to_string());
                     false
                 }
             })
             .next()
-            .map(|(path, _)| String::clone(path))?;
+            .map(|result| result.path.to_string())?;
 
         for path in to_remove {
             self.remove(&path).unwrap();
@@ -114,12 +118,16 @@ impl Index {
         Some(path)
     }
 
-    pub fn list(&self) -> Vec<&String> {
-        let mut entries: Vec<_> = self.scored_entries.iter().collect();
+    pub fn list(&self) -> Vec<&str> {
+        let mut entries: Vec<_> = self
+            .scored_entries
+            .iter()
+            .map(IndexQueryResult::from)
+            .collect();
 
-        entries.sort_by(|a, b| b.1.cmp(a.1));
+        entries.sort();
 
-        entries.iter().map(|entry| entry.0).collect()
+        entries.iter().map(|result| result.path).collect()
     }
 
     pub fn remove(&mut self, path: &str) -> Result<(), &'static str> {
@@ -166,5 +174,34 @@ impl Index {
         }
 
         Ok(Self { scored_entries })
+    }
+}
+
+#[derive(PartialEq, Eq)]
+pub struct IndexQueryResult<'a> {
+    path: &'a str,
+    score: u64,
+}
+
+impl<'a> From<(&'a String, &'a u64)> for IndexQueryResult<'a> {
+    fn from(iter_entry: (&'a String, &'a u64)) -> Self {
+        Self {
+            path: iter_entry.0.as_str(),
+            score: *iter_entry.1,
+        }
+    }
+}
+
+impl<'a> PartialOrd for IndexQueryResult<'a> {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(&other))
+    }
+}
+
+impl<'a> Ord for IndexQueryResult<'a> {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.score
+            .cmp(&other.score)
+            .then_with(|| self.path.cmp(other.path))
     }
 }
