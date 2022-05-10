@@ -1,18 +1,18 @@
 use std::{
     cmp::Ordering,
-    collections::{btree_map::Entry, BTreeMap},
+    collections::{hash_map::Entry, HashMap},
     fs,
     path::Path,
 };
 
 pub struct Index {
-    scored_entries: BTreeMap<String, u64>,
+    scored_entries: HashMap<String, u64>,
 }
 
 impl Index {
     pub fn new() -> Self {
         Self {
-            scored_entries: BTreeMap::new(),
+            scored_entries: HashMap::new(),
         }
     }
 
@@ -152,7 +152,7 @@ impl Index {
     }
 
     pub fn clear(&mut self) {
-        self.scored_entries = BTreeMap::new();
+        self.scored_entries = HashMap::new();
     }
 
     pub fn encode(&self) -> String {
@@ -165,7 +165,7 @@ impl Index {
 
     pub fn decode(input: &str) -> Result<Self, String> {
         let mut n = 0;
-        let mut scored_entries = BTreeMap::new();
+        let mut scored_entries = HashMap::new();
 
         for line in input.lines() {
             n += 1;
