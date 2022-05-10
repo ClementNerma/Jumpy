@@ -200,8 +200,10 @@ impl<'a> PartialOrd for IndexQueryResult<'a> {
 
 impl<'a> Ord for IndexQueryResult<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.score
-            .cmp(&other.score)
-            .then_with(|| self.path.cmp(other.path))
+        self.score.cmp(&other.score).then_with(|| {
+            self.path
+                .cmp(other.path)
+                .then_with(|| panic!("Got two directories with the same path: {}", other.path))
+        })
     }
 }
