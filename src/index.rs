@@ -53,7 +53,7 @@ impl Index {
         self.add_or_inc(path, true)
     }
 
-    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexQueryResult> {
+    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry> {
         let query = query.to_lowercase();
 
         let mut entries = self
@@ -68,7 +68,7 @@ impl Index {
                     .to_lowercase()
                     .contains(&query)
             })
-            .map(IndexQueryResult::from)
+            .map(IndexEntry::from)
             .collect::<Vec<_>>();
 
         entries.sort();
@@ -119,11 +119,7 @@ impl Index {
     }
 
     pub fn list(&self) -> Vec<&str> {
-        let mut entries: Vec<_> = self
-            .scored_entries
-            .iter()
-            .map(IndexQueryResult::from)
-            .collect();
+        let mut entries: Vec<_> = self.scored_entries.iter().map(IndexEntry::from).collect();
 
         entries.sort();
 
@@ -160,15 +156,19 @@ impl Index {
     }
 
     pub fn encode(&self) -> String {
-        let mut lines = self
+        let mut entries = self
             .scored_entries
             .iter()
-            .map(|(path, score)| format!("{} {}", *score, path))
+            .map(IndexEntry::from)
             .collect::<Vec<_>>();
 
-        lines.sort_by(|a, b| b.cmp(a));
+        entries.sort_by(|a, b| b.cmp(a));
 
-        lines.join("\n")
+        entries
+            .iter()
+            .map(|entry| format!("{} {}", entry.score, entry.path))
+            .collect::<Vec<_>>()
+            .join("\n")
     }
 
     pub fn decode(input: &str) -> Result<Self, String> {
@@ -200,12 +200,12 @@ impl Index {
 }
 
 #[derive(PartialEq, Eq)]
-pub struct IndexQueryResult<'a> {
+pub struct IndexEntry<'a> {
     path: &'a str,
     score: u64,
 }
 
-impl<'a> From<(&'a String, &'a u64)> for IndexQueryResult<'a> {
+impl<'a> From<(&'a String, &'a u64)> for IndexEntry<'a> {
     fn from(iter_entry: (&'a String, &'a u64)) -> Self {
         Self {
             path: iter_entry.0.as_str(),
@@ -214,13 +214,13 @@ impl<'a> From<(&'a String, &'a u64)> for IndexQueryResult<'a> {
     }
 }
 
-impl<'a> PartialOrd for IndexQueryResult<'a> {
+impl<'a> PartialOrd for IndexEntry<'a> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(self.cmp(&other))
     }
 }
 
-impl<'a> Ord for IndexQueryResult<'a> {
+impl<'a> Ord for IndexEntry<'a> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.score.cmp(&other.score).then_with(|| {
             self.path
