@@ -47,9 +47,9 @@ fn main() {
                 .unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
         }
 
-        Action::Inc(Inc { path }) => {
+        Action::Inc(Inc { path, top }) => {
             index
-                .inc(path)
+                .inc(path, top)
                 .unwrap_or_else(|e| fail(&format!("Failed to increment directory: {e}")));
         }
 

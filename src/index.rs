@@ -16,7 +16,12 @@ impl Index {
         }
     }
 
-    pub fn add_or_inc(&mut self, path: String, inc_if_exists: bool) -> Result<(), String> {
+    pub fn add_or_inc(
+        &mut self,
+        path: String,
+        update_score: impl FnOnce(u64) -> u64,
+        default_value: u64,
+    ) -> Result<(), String> {
         if path.is_empty() {
             return Err("Please provide a valid path.".to_string());
         }
@@ -33,12 +38,10 @@ impl Index {
 
         match self.scored_entries.entry(path) {
             Entry::Occupied(mut entry) => {
-                if inc_if_exists {
-                    *entry.get_mut() += 1;
-                }
+                *entry.get_mut() = update_score(*entry.get());
             }
             Entry::Vacant(entry) => {
-                entry.insert(1);
+                entry.insert(default_value);
             }
         }
 
@@ -46,11 +49,15 @@ impl Index {
     }
 
     pub fn add(&mut self, path: String) -> Result<(), String> {
-        self.add_or_inc(path, false)
+        self.add_or_inc(path, |score| score, 1)
     }
 
-    pub fn inc(&mut self, path: String) -> Result<(), String> {
-        self.add_or_inc(path, true)
+    pub fn inc(&mut self, path: String, set_top: bool) -> Result<(), String> {
+        self.add_or_inc(
+            path,
+            |score| score.saturating_add(1),
+            if set_top { u64::MAX } else { 1 },
+        )
     }
 
     pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry> {

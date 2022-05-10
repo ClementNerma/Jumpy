@@ -58,6 +58,9 @@ pub struct Add {
 pub struct Inc {
     #[clap()]
     pub path: String,
+
+    #[clap(long, help = "Give the maximum score to this directory")]
+    pub top: bool,
 }
 
 #[derive(Args)]
