@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v0.3.0 (2022-05-10)
+
+* **NEW:** `export` subcommand
+* **NEW:** `path` subcommand to print the path to the database file
+* **NEW:** `path --lossily` to print to the path to the database file lossily (if it contains invalid UTF-8 characters)
+
+* **INTERNAL:** Make database file sorted
+
+* **FIX:** Don't flush index to disk when no change were made
+
 ## v0.2.0 (2022-05-10)
 
 * **BREAKING:** `add <path>` subcommand doesn't increment registered directories anymore
