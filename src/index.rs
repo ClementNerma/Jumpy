@@ -55,7 +55,13 @@ impl Index {
     pub fn inc(&mut self, path: String, set_top: bool) -> Result<(), String> {
         self.add_or_inc(
             path,
-            |score| score.saturating_add(1),
+            |score| {
+                if set_top {
+                    u64::MAX
+                } else {
+                    score.saturating_add(1)
+                }
+            },
             if set_top { u64::MAX } else { 1 },
         )
     }

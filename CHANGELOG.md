@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.2 (2022-05-10)
+
+* **FIX:** `--top` flag for `inc` command being ignored if directory already registered
+
 ## v0.3.1 (2022-05-10)
 
 * **NEW:** `inc <path> --top` subcommand to assign the maximum score to the provided directory
