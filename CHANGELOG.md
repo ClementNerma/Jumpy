@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.1.4 (2022-05-10)
+
+* **NEW:** `optimize` subcommand to optimize database
+* **PERF:** Switch to a `HashMap` instead of using a `BTreeMap`
+
 ## v0.1.3 (2022-05-10)
 
 * **NEW:** `query <path> --checked` to find the first existing directory (previous ones will be removed from database)
