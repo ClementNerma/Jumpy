@@ -62,7 +62,7 @@ impl Index {
                     score.saturating_add(1)
                 }
             },
-            if set_top { u64::MAX } else { 1 },
+            if set_top { u64::MAX / 2 } else { 1 },
         )
     }
 
