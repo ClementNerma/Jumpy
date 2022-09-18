@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.4 (2022-09-19)
+
+* **Fix:** Remove entries from the database with `optimize` when a directory became a file
+
 ## v0.3.3 (2022-05-10)
 
 * **Fix:** Score ranking was reversed in `query` and `list`

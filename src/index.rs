@@ -149,7 +149,7 @@ impl Index {
         let mut to_remove = vec![];
 
         for path in self.scored_entries.keys() {
-            if !Path::new(path).exists() {
+            if !Path::new(path).is_dir() {
                 to_remove.push(path.to_string());
             }
         }
