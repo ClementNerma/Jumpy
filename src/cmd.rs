@@ -35,8 +35,8 @@ pub enum Action {
     #[clap(about = "Delete a registered directory from the database")]
     Del(Del),
 
-    #[clap(about = "Optimize the database")]
-    Optimize(Optimize),
+    #[clap(about = "Cleanup the database to remove deleted directories")]
+    Cleanup(Cleanup),
 
     #[clap(about = "Clear the database")]
     Clear(Clear),
@@ -85,7 +85,7 @@ pub struct Del {
 }
 
 #[derive(Args)]
-pub struct Optimize {}
+pub struct Cleanup {}
 
 #[derive(Args)]
 pub struct Clear {}

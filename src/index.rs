@@ -145,7 +145,7 @@ impl Index {
         }
     }
 
-    pub fn optimize(&mut self) {
+    pub fn cleanup(&mut self) {
         let mut to_remove = vec![];
 
         for path in self.scored_entries.keys() {

@@ -90,7 +90,7 @@ fn main() {
             index.clear();
         }
 
-        Action::Optimize(Optimize {}) => index.optimize(),
+        Action::Cleanup(Cleanup {}) => index.cleanup(),
 
         Action::Export(Export {}) => index.export(),
 

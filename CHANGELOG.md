@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.5 (2022-09-19)
+
+* **BREAKING:** Renamed the `optimize` action to `cleanup`
+
 ## v0.3.4 (2022-09-19)
 
 * **Fix:** Remove entries from the database with `optimize` when a directory became a file
