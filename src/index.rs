@@ -36,6 +36,11 @@ impl Index {
             .ok_or_else(|| format!("Path contains invalid UTF-8 characters: {path}"))?
             .to_string();
 
+        // Silently ignore root path
+        if path == "/" {
+            return Ok(());
+        }
+
         match self.scored_entries.entry(path) {
             Entry::Occupied(mut entry) => {
                 *entry.get_mut() = update_score(*entry.get());

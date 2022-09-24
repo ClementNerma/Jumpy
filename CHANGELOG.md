@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.3.6 (2022-09-24)
+
+* **Fix::** Don't register root path (`/`) as it doesn't have a filename to match against
+
 ## v0.3.5 (2022-09-19)
 
 * **BREAKING:** Renamed the `optimize` action to `cleanup`
