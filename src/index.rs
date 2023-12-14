@@ -77,14 +77,12 @@ impl Index {
         let mut entries = self
             .scored_entries
             .iter()
-            .filter(|(path, _)| {
+            .filter_map(|(path, scope)| {
                 Path::new(path)
                     .file_name()
-                    .unwrap()
-                    .to_str()
-                    .unwrap()
-                    .to_lowercase()
-                    .contains(&query)
+                    .and_then(|filename| filename.to_str())
+                    .filter(|filename| filename.to_lowercase().contains(&query))
+                    .map(|_| (path, scope))
             })
             .map(IndexEntry::from)
             .collect::<Vec<_>>();
