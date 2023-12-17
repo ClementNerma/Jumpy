@@ -1,7 +1,6 @@
 use std::{
     cmp::Ordering,
     collections::{hash_map::Entry, HashMap},
-    fs,
     path::Path,
 };
 
@@ -30,7 +29,9 @@ impl Index {
             return Err("Provided directory does not exist.".to_string());
         }
 
-        let path = fs::canonicalize(&path)
+        // NOTE: we use 'dunce' to avoid (when possible) UNC paths which may
+        //       result in unexpected behaviours
+        let path = dunce::canonicalize(&path)
             .map_err(|e| format!("Failed to canonicalize path: {e}"))?
             .to_str()
             .ok_or_else(|| format!("Path contains invalid UTF-8 characters: {path}"))?
@@ -106,7 +107,7 @@ impl Index {
 
     pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&str> {
         self.query_all(query, after)
-            .get(0)
+            .first()
             .map(|result| result.path)
     }
 
