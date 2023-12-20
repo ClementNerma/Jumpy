@@ -80,16 +80,14 @@ fn main() {
             }
         }
 
-        Action::List(List {
-            ranking,
-            sort_by_score,
-        }) => {
+        Action::List(List { just_paths }) => {
             let mut entries = index.iter().collect::<Vec<_>>();
 
-            if !sort_by_score {
+            if just_paths {
                 entries.sort_by_key(|entry| entry.path);
             } else {
-                entries.sort_by(|a, b| a.score.cmp(&b.score).reverse());
+                entries.sort_by_key(|entry| entry.score);
+                entries.reverse();
             }
 
             let longest_score = entries
@@ -100,7 +98,7 @@ fn main() {
                 .unwrap_or(0);
 
             for IndexEntry { path, score } in entries {
-                if !ranking {
+                if just_paths {
                     println!("{path}");
                 } else {
                     println!("{score:>longest_score$} {path}");

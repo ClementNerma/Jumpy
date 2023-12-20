@@ -77,11 +77,11 @@ pub struct Query {
 
 #[derive(Args)]
 pub struct List {
-    #[clap(long, help = "Display the entry's ranking")]
-    pub ranking: bool,
-
-    #[clap(long, help = "Sort by score")]
-    pub sort_by_score: bool,
+    #[clap(
+        long,
+        help = "Only display paths (sort order will be alphabetic instead of score-based)"
+    )]
+    pub just_paths: bool,
 }
 
 #[derive(Args)]
