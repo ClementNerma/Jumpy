@@ -76,7 +76,13 @@ pub struct Query {
 }
 
 #[derive(Args)]
-pub struct List {}
+pub struct List {
+    #[clap(long, help = "Display the entry's ranking")]
+    pub ranking: bool,
+
+    #[clap(long, help = "Sort by score")]
+    pub sort_by_score: bool,
+}
 
 #[derive(Args)]
 pub struct Del {

@@ -7,6 +7,8 @@ mod index;
 
 use clap::Parser;
 
+use crate::index::IndexEntry;
+
 static INDEX_FILENAME: &str = "jumpy.db";
 
 fn fail(message: &str) -> ! {
@@ -76,9 +78,31 @@ fn main() {
             }
         }
 
-        Action::List(List {}) => {
-            for dir in index.list() {
-                println!("{dir}");
+        Action::List(List {
+            ranking,
+            sort_by_score,
+        }) => {
+            let mut entries = index.iter().collect::<Vec<_>>();
+
+            if !sort_by_score {
+                entries.sort_by_key(|entry| entry.path);
+            } else {
+                entries.sort_by(|a, b| a.score.cmp(&b.score).reverse());
+            }
+
+            let longest_score = entries
+                .iter()
+                .map(|entry| entry.score)
+                .max()
+                .map(|score| score.to_string().len())
+                .unwrap_or(0);
+
+            for IndexEntry { path, score } in entries {
+                if !ranking {
+                    println!("{path}");
+                } else {
+                    println!("{score:>longest_score$} {path}");
+                }
             }
         }
 

@@ -134,12 +134,8 @@ impl Index {
         Some(path)
     }
 
-    pub fn list(&self) -> Vec<&str> {
-        let mut entries: Vec<_> = self.scored_entries.iter().map(IndexEntry::from).collect();
-
-        entries.sort_by(|a, b| b.cmp(a));
-
-        entries.iter().map(|result| result.path).collect()
+    pub fn iter(&self) -> impl Iterator<Item = IndexEntry> {
+        self.scored_entries.iter().map(IndexEntry::from)
     }
 
     pub fn remove(&mut self, path: &str) -> Result<(), &'static str> {
@@ -217,8 +213,8 @@ impl Index {
 
 #[derive(PartialEq, Eq)]
 pub struct IndexEntry<'a> {
-    path: &'a str,
-    score: u64,
+    pub path: &'a str,
+    pub score: u64,
 }
 
 impl<'a> From<(&'a String, &'a u64)> for IndexEntry<'a> {
