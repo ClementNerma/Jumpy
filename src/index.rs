@@ -1,17 +1,16 @@
 use std::{
-    cmp::Ordering,
-    collections::{hash_map::Entry, HashMap},
-    path::Path,
+    collections::{btree_map::Entry, BTreeMap},
+    path::{Component, Path},
 };
 
 pub struct Index {
-    scored_entries: HashMap<String, u64>,
+    scored_entries: BTreeMap<String, u64>,
 }
 
 impl Index {
     pub fn new() -> Self {
         Self {
-            scored_entries: HashMap::new(),
+            scored_entries: BTreeMap::new(),
         }
     }
 
@@ -72,42 +71,46 @@ impl Index {
         )
     }
 
-    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry> {
+    pub fn query_all(&self, query: &str, after: Option<&str>) -> impl Iterator<Item = IndexEntry> {
         let query = query.to_lowercase();
+        let query_bis = query.clone();
 
-        let mut entries = self
-            .scored_entries
+        let skip = after
+            .and_then(|dir| self.scored_entries.iter().position(|(path, _)| path == dir))
+            .unwrap_or(0);
+
+        self.scored_entries
             .iter()
-            .filter_map(|(path, scope)| {
+            .skip(skip + 1)
+            .filter(move |(path, _)| {
                 Path::new(path)
                     .file_name()
                     .and_then(|filename| filename.to_str())
                     .filter(|filename| filename.to_lowercase().contains(&query))
-                    .map(|_| (path, scope))
+                    .is_some()
             })
+            .chain(
+                self.scored_entries
+                    .iter()
+                    .skip(skip + 1)
+                    .filter(move |(path, _)| {
+                        Path::new(path).components().any(|component| {
+                            if let Component::Normal(component) = component
+                                && let Some(component) = component.to_str()
+                            {
+                                component.to_lowercase().contains(&query_bis)
+                            } else {
+                                false
+                            }
+                        })
+                    }),
+            )
             .map(IndexEntry::from)
-            .collect::<Vec<_>>();
-
-        entries.sort_by(|a, b| b.cmp(a));
-
-        if let Some(after) = after {
-            let index = entries.iter().position(|result| result.path == after);
-
-            if let Some(index) = index {
-                let count = entries.len();
-                entries = entries
-                    .into_iter()
-                    .skip(if index + 1 < count { index + 1 } else { 0 })
-                    .collect();
-            }
-        }
-
-        entries
     }
 
     pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&str> {
         self.query_all(query, after)
-            .first()
+            .next()
             .map(|result| result.path)
     }
 
@@ -116,7 +119,6 @@ impl Index {
 
         let path = self
             .query_all(query, after)
-            .iter()
             .find(|result| {
                 if Path::new(result.path).exists() {
                     true
@@ -164,20 +166,13 @@ impl Index {
     }
 
     pub fn clear(&mut self) {
-        self.scored_entries = HashMap::new();
+        self.scored_entries = BTreeMap::new();
     }
 
     pub fn encode(&self) -> String {
-        let mut entries = self
-            .scored_entries
+        self.scored_entries
             .iter()
             .map(IndexEntry::from)
-            .collect::<Vec<_>>();
-
-        entries.sort_by(|a, b| b.cmp(a));
-
-        entries
-            .iter()
             .map(|entry| format!("{} {}", entry.score, entry.path))
             .collect::<Vec<_>>()
             .join("\n")
@@ -185,7 +180,7 @@ impl Index {
 
     pub fn decode(input: &str) -> Result<Self, String> {
         let mut n = 0;
-        let mut scored_entries = HashMap::new();
+        let mut scored_entries = BTreeMap::new();
 
         for line in input.lines() {
             n += 1;
@@ -223,21 +218,5 @@ impl<'a> From<(&'a String, &'a u64)> for IndexEntry<'a> {
             path: iter_entry.0.as_str(),
             score: *iter_entry.1,
         }
-    }
-}
-
-impl<'a> PartialOrd for IndexEntry<'a> {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl<'a> Ord for IndexEntry<'a> {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.score.cmp(&other.score).then_with(|| {
-            self.path
-                .cmp(other.path)
-                .then_with(|| panic!("Got two directories with the same path: {}", other.path))
-        })
     }
 }
