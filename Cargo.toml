@@ -1,6 +1,6 @@
 [package]
 name = "jumpy"
-version = "0.4.1"
+version = "0.4.2"
 edition = "2021"
 authors = ["Clément Nerma <clement.nerma@gmail.com>"]
 license = "Apache-2.0"

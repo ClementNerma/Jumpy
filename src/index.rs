@@ -71,46 +71,68 @@ impl Index {
         )
     }
 
-    pub fn query_all(&self, query: &str, after: Option<&str>) -> impl Iterator<Item = IndexEntry> {
-        let query = query.to_lowercase();
-        let query_bis = query.clone();
-
-        let skip = after
-            .and_then(|dir| self.scored_entries.iter().position(|(path, _)| path == dir))
-            .unwrap_or(0);
-
-        self.scored_entries
+    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry> {
+        let mut results = self
+            .scored_entries
             .iter()
-            .skip(skip + 1)
             .filter(move |(path, _)| {
                 Path::new(path)
                     .file_name()
                     .and_then(|filename| filename.to_str())
-                    .filter(|filename| filename.to_lowercase().contains(&query))
+                    .filter(|filename| filename.to_lowercase().contains(query))
                     .is_some()
             })
-            .chain(
-                self.scored_entries
-                    .iter()
-                    .skip(skip + 1)
-                    .filter(move |(path, _)| {
-                        Path::new(path).components().any(|component| {
-                            if let Component::Normal(component) = component
-                                && let Some(component) = component.to_str()
-                            {
-                                component.to_lowercase().contains(&query_bis)
-                            } else {
-                                false
-                            }
-                        })
-                    }),
-            )
             .map(IndexEntry::from)
+            .collect::<Vec<_>>();
+
+        let skip = match after {
+            Some(after) => match results.iter().position(|result| result.path == after) {
+                Some(index) => {
+                    results.drain(0..=index);
+
+                    self.scored_entries
+                        .iter()
+                        .position(|(path, _)| path == after)
+                        .unwrap()
+                        + 1
+                }
+
+                None => 0,
+            },
+
+            None => 0,
+        };
+
+        results.extend(
+            self.scored_entries
+                .iter()
+                .skip(skip)
+                .filter(move |(path, _)| {
+                    if let Some(after) = after {
+                        if path.starts_with(after) {
+                            return false;
+                        }
+                    }
+
+                    Path::new(path).components().any(|component| {
+                        if let Component::Normal(component) = component
+                            && let Some(component) = component.to_str()
+                        {
+                            component.to_lowercase().contains(query)
+                        } else {
+                            false
+                        }
+                    })
+                })
+                .map(IndexEntry::from),
+        );
+
+        results
     }
 
     pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&str> {
         self.query_all(query, after)
-            .next()
+            .first()
             .map(|result| result.path)
     }
 
@@ -119,6 +141,7 @@ impl Index {
 
         let path = self
             .query_all(query, after)
+            .into_iter()
             .find(|result| {
                 if Path::new(result.path).exists() {
                     true
@@ -206,7 +229,7 @@ impl Index {
     }
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct IndexEntry<'a> {
     pub path: &'a str,
     pub score: u64,
