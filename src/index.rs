@@ -72,14 +72,16 @@ impl Index {
     }
 
     pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry> {
+        let query = query.to_lowercase();
+
         let mut results = self
             .scored_entries
             .iter()
-            .filter(move |(path, _)| {
+            .filter(|(path, _)| {
                 Path::new(path)
                     .file_name()
                     .and_then(|filename| filename.to_str())
-                    .filter(|filename| filename.to_lowercase().contains(query))
+                    .filter(|filename| filename.to_lowercase().contains(&query))
                     .is_some()
             })
             .map(IndexEntry::from)
@@ -118,7 +120,7 @@ impl Index {
                         if let Component::Normal(component) = component
                             && let Some(component) = component.to_str()
                         {
-                            component.to_lowercase().contains(query)
+                            component.to_lowercase().contains(&query)
                         } else {
                             false
                         }

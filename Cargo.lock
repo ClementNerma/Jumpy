@@ -161,7 +161,7 @@ checksum = "f8478577c03552c21db0e2724ffb8986a5ce7af88107e6be5d2ee6e158c12800"
 
 [[package]]
 name = "jumpy"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "clap",
  "dirs",
