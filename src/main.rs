@@ -67,7 +67,6 @@ fn main() {
             }
 
             let result = if checked {
-                // TODO: update index IF changed
                 index.query_checked(&query, after.as_deref())
             } else {
                 index
