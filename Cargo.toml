@@ -9,6 +9,6 @@ readme = "README.md"
 repository = "https://github.com/ClementNerma/Jumpy"
 
 [dependencies]
-clap = { version = "4.4.11", features = ["derive"] }
+clap = { version = "4.5.4", features = ["derive"] }
 dirs = "5.0.1"
 dunce = "1.0.4"
