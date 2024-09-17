@@ -80,7 +80,7 @@ impl Index {
             .filter(|(path, _)| {
                 Path::new(path)
                     .file_name()
-                    .and_then(|filename| filename.to_str())
+                    .map(|filename| filename.to_str().unwrap())
                     .filter(|filename| filename.to_lowercase().contains(&query))
                     .is_some()
             })
