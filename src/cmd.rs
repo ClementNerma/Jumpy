@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum, ValueHint};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
 pub struct Command {
-    #[clap(short, long)]
+    #[clap(short, long, value_hint = ValueHint::FilePath)]
     pub index_file: Option<PathBuf>,
 
     #[clap(subcommand)]
@@ -46,17 +46,20 @@ pub enum Action {
 
     #[clap(about = "Get the path of the index file")]
     Path(Path),
+
+    #[clap(about = "Generate completions for a given shell")]
+    Completions(Completions),
 }
 
 #[derive(Args)]
 pub struct Add {
-    #[clap()]
+    #[clap(value_hint = ValueHint::DirPath)]
     pub path: String,
 }
 
 #[derive(Args)]
 pub struct Inc {
-    #[clap()]
+    #[clap(value_hint = ValueHint::DirPath)]
     pub path: String,
 
     #[clap(long, help = "Give the maximum score to this directory")]
@@ -68,7 +71,7 @@ pub struct Query {
     #[clap()]
     pub query: String,
 
-    #[clap(short, long)]
+    #[clap(short, long, value_hint = ValueHint::DirPath)]
     pub after: Option<String>,
 
     #[clap(short, long)]
@@ -86,7 +89,7 @@ pub struct List {
 
 #[derive(Args)]
 pub struct Del {
-    #[clap()]
+    #[clap(value_hint = ValueHint::DirPath)]
     pub path: String,
 }
 
@@ -107,4 +110,19 @@ pub struct Path {
         help = "If the path contains invalid UTF-8 characters, don't fail and print it lossily instead"
     )]
     pub lossily: bool,
+}
+
+#[derive(Args)]
+pub struct Completions {
+    #[clap(help = "Shell to generate completions for")]
+    pub for_shell: CompletionShellName,
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+pub enum CompletionShellName {
+    Bash,
+    Zsh,
+    Fish,
+    Elvish,
+    PowerShell,
 }

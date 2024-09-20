@@ -7,9 +7,14 @@
 mod cmd;
 mod index;
 
-use clap::Parser;
+use std::{fs, io::stdout};
 
-use crate::index::IndexEntry;
+use clap::{CommandFactory, Parser};
+
+use crate::{
+    cmd::*,
+    index::{Index, IndexEntry},
+};
 
 static INDEX_FILENAME: &str = "jumpy.db";
 
@@ -19,10 +24,6 @@ fn fail(message: &str) -> ! {
 }
 
 fn main() {
-    use cmd::*;
-    use index::Index;
-    use std::fs;
-
     let cmd = Command::parse();
 
     let index_file = cmd.index_file.unwrap_or_else(|| {
@@ -128,6 +129,22 @@ fn main() {
                 }
             }
         },
+
+        Action::Completions(Completions { for_shell }) => {
+            use clap_complete::*;
+
+            let shell = match for_shell {
+                CompletionShellName::Bash => Shell::Bash,
+                CompletionShellName::Zsh => Shell::Zsh,
+                CompletionShellName::Fish => Shell::Fish,
+                CompletionShellName::Elvish => Shell::Elvish,
+                CompletionShellName::PowerShell => Shell::PowerShell,
+            };
+
+            let cmd = &mut Command::command();
+
+            aot::generate(shell, cmd, cmd.get_name().to_string(), &mut stdout());
+        }
     }
 
     let updated = index.encode();
