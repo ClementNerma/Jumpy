@@ -117,13 +117,13 @@ impl Index {
                     }
 
                     Path::new(path).components().any(|component| {
-                        if let Component::Normal(component) = component
-                            && let Some(component) = component.to_str()
-                        {
-                            component.to_lowercase().contains(&query)
-                        } else {
-                            false
+                        if let Component::Normal(component) = component {
+                            if let Some(component) = component.to_str() {
+                                return component.to_lowercase().contains(&query);
+                            }
                         }
+
+                        false
                     })
                 })
                 .map(IndexEntry::from),

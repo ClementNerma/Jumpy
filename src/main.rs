@@ -1,8 +1,6 @@
 #![forbid(unsafe_code)]
 #![forbid(unused_must_use)]
 #![forbid(unused_allocation)]
-// TODO: NOTE: Nightly
-#![feature(let_chains)]
 
 mod cmd;
 mod index;
