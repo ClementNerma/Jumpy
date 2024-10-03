@@ -132,12 +132,14 @@ impl Index {
         results
     }
 
+    /// Perform a query without checking if the result directories still exist
     pub fn query_unchecked(&self, query: &str, after: Option<&str>) -> Option<&str> {
         self.query_all(query, after)
             .first()
             .map(|result| result.path)
     }
 
+    /// Perform a query but remove directory entries which don't exist anymore
     pub fn query_checked(&mut self, query: &str, after: Option<&str>) -> Option<String> {
         let mut to_remove = vec![];
 

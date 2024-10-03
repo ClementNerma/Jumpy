@@ -8,6 +8,12 @@ In its current version it is mostly intended for my personal use, if I find to w
 
 Updates can be found in [the changelog](CHANGELOG.md) or in the [releases](https://github.com/ClementNerma/Jumpy/releases).
 
+## Performance
+
+On a Ryzen 7900 (running on a single core), it takes about 4 seconds to decode a 500 MB index file with 10 million registered directories, and 2 seconds to traverse it entirely to find the very last entry.
+
+On a small and more realistic example, with 1 thousand directories, it takes about 250 µs to decode the 50 KB index file and 250 µs to traverse it to find the last entry.
+
 ## Setup
 
 For ZSH shells:
