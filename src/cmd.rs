@@ -80,11 +80,8 @@ pub struct Query {
 
 #[derive(Args)]
 pub struct List {
-    #[clap(
-        long,
-        help = "Only display paths (sort order will be alphabetic instead of score-based)"
-    )]
-    pub just_paths: bool,
+    #[clap(short, long, help = "Display scores and sort directories by them")]
+    pub scores: bool,
 }
 
 #[derive(Args)]
