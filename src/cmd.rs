@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Args, Parser, Subcommand, ValueEnum, ValueHint};
+use clap::{Parser, Subcommand, ValueEnum, ValueHint};
 
 #[derive(Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -18,103 +18,72 @@ pub enum Action {
         about = "Add a new directory if not yet registered",
         long_about = "Does nothing if the directory is already registered"
     )]
-    Add(Add),
+    Add {
+        #[clap(value_hint = ValueHint::DirPath)]
+        path: String,
+    },
 
     #[clap(
         about = "Increment a registered directory's score or add it to the database",
         long_about = "Adds the directory to the database if it is not registered yet"
     )]
-    Inc(Inc),
+    Inc {
+        #[clap(value_hint = ValueHint::DirPath)]
+        path: String,
+
+        #[clap(long, help = "Give the maximum score to this directory")]
+        top: bool,
+    },
 
     #[clap(about = "Find the most relevant directory for the provided query")]
-    Query(Query),
+    Query {
+        #[clap()]
+        query: String,
+
+        #[clap(short, long, value_hint = ValueHint::DirPath)]
+        after: Option<String>,
+
+        #[clap(short, long)]
+        checked: bool,
+    },
 
     #[clap(about = "List all registered directories")]
-    List(List),
+    List {
+        #[clap(short, long, help = "Display scores and sort directories by them")]
+        scores: bool,
+    },
 
     #[clap(about = "Delete a registered directory from the database")]
-    Del(Del),
+    Del {
+        #[clap(value_hint = ValueHint::DirPath)]
+        path: String,
+    },
 
     #[clap(about = "Cleanup the database to remove deleted directories")]
-    Cleanup(Cleanup),
+    Cleanup {},
 
     #[clap(about = "Clear the database")]
-    Clear(Clear),
+    Clear {},
 
     #[clap(about = "Output the entire database (plain text)")]
-    Export(Export),
+    Export {},
 
     #[clap(about = "Get the path of the index file")]
-    Path(Path),
+    Path {
+        #[clap(
+            short,
+            long,
+            help = "If the path contains invalid UTF-8 characters, don't fail and print it lossily instead"
+        )]
+        lossily: bool,
+    },
 
     #[clap(about = "Generate completions for a given shell")]
-    Completions(Completions),
+    Completions {
+        #[clap(help = "Shell to generate completions for")]
+        for_shell: CompletionShellName,
+    },
 }
-
-#[derive(Args)]
-pub struct Add {
-    #[clap(value_hint = ValueHint::DirPath)]
-    pub path: String,
-}
-
-#[derive(Args)]
-pub struct Inc {
-    #[clap(value_hint = ValueHint::DirPath)]
-    pub path: String,
-
-    #[clap(long, help = "Give the maximum score to this directory")]
-    pub top: bool,
-}
-
-#[derive(Args)]
-pub struct Query {
-    #[clap()]
-    pub query: String,
-
-    #[clap(short, long, value_hint = ValueHint::DirPath)]
-    pub after: Option<String>,
-
-    #[clap(short, long)]
-    pub checked: bool,
-}
-
-#[derive(Args)]
-pub struct List {
-    #[clap(short, long, help = "Display scores and sort directories by them")]
-    pub scores: bool,
-}
-
-#[derive(Args)]
-pub struct Del {
-    #[clap(value_hint = ValueHint::DirPath)]
-    pub path: String,
-}
-
-#[derive(Args)]
-pub struct Cleanup {}
-
-#[derive(Args)]
-pub struct Clear {}
-
-#[derive(Args)]
-pub struct Export {}
-
-#[derive(Args)]
-pub struct Path {
-    #[clap(
-        short,
-        long,
-        help = "If the path contains invalid UTF-8 characters, don't fail and print it lossily instead"
-    )]
-    pub lossily: bool,
-}
-
-#[derive(Args)]
-pub struct Completions {
-    #[clap(help = "Shell to generate completions for")]
-    pub for_shell: CompletionShellName,
-}
-
 #[derive(Clone, Copy, ValueEnum)]
 pub enum CompletionShellName {
     Bash,

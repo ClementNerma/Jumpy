@@ -44,23 +44,23 @@ fn main() {
     };
 
     match cmd.action {
-        Action::Add(Add { path }) => {
+        Action::Add { path } => {
             index
                 .add(path)
                 .unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
         }
 
-        Action::Inc(Inc { path, top }) => {
+        Action::Inc { path, top } => {
             index
                 .inc(path, top)
                 .unwrap_or_else(|e| fail(&format!("Failed to increment directory: {e}")));
         }
 
-        Action::Query(Query {
+        Action::Query {
             query,
             after,
             checked,
-        }) => {
+        } => {
             if query.is_empty() {
                 fail("Please provide a query to search from.");
             }
@@ -79,7 +79,7 @@ fn main() {
             }
         }
 
-        Action::List(List { scores }) => {
+        Action::List { scores } => {
             let mut entries = index.iter().collect::<Vec<_>>();
 
             if scores {
@@ -105,19 +105,19 @@ fn main() {
             }
         }
 
-        Action::Del(Del { path }) => {
+        Action::Del { path } => {
             index.remove(&path).unwrap();
         }
 
-        Action::Clear(Clear {}) => {
+        Action::Clear {} => {
             index.clear();
         }
 
-        Action::Cleanup(Cleanup {}) => index.cleanup(),
+        Action::Cleanup {} => index.cleanup(),
 
-        Action::Export(Export {}) => index.export(),
+        Action::Export {} => index.export(),
 
-        Action::Path(Path { lossily }) => match index_file.to_str() {
+        Action::Path { lossily } => match index_file.to_str() {
             Some(lossless) => println!("{}", lossless),
             None => {
                 if lossily {
@@ -128,7 +128,7 @@ fn main() {
             }
         },
 
-        Action::Completions(Completions { for_shell }) => {
+        Action::Completions { for_shell } => {
             use clap_complete::*;
 
             let shell = match for_shell {
