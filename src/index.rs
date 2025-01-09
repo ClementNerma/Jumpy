@@ -186,13 +186,12 @@ impl Index {
     }
 
     pub fn cleanup(&mut self) {
-        let mut to_remove = vec![];
-
-        for path in self.scored_entries.keys() {
-            if !Path::new(path).is_dir() {
-                to_remove.push(path.to_string());
-            }
-        }
+        let to_remove = self
+            .scored_entries
+            .keys()
+            .filter(|path| !Path::new(path).is_dir())
+            .cloned()
+            .collect::<Vec<_>>();
 
         for path in to_remove {
             self.remove_canonicalized(&path).unwrap();
