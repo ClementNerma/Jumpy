@@ -60,13 +60,13 @@ pub enum Action {
     },
 
     #[clap(about = "Cleanup the database to remove deleted directories")]
-    Cleanup {},
+    Cleanup,
 
     #[clap(about = "Clear the database")]
-    Clear {},
+    Clear,
 
     #[clap(about = "Output the entire database (plain text)")]
-    Export {},
+    Export,
 
     #[clap(about = "Get the path of the index file")]
     Path {

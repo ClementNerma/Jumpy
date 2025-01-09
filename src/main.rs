@@ -112,13 +112,13 @@ fn inner_main() -> Result<()> {
             index.remove_canonicalized(&path)?;
         }
 
-        Action::Clear {} => {
+        Action::Clear => {
             index.clear();
         }
 
-        Action::Cleanup {} => index.cleanup(),
+        Action::Cleanup => index.cleanup(),
 
-        Action::Export {} => index.export(),
+        Action::Export => index.export(),
 
         Action::Path { lossily } => match index_file.to_str() {
             Some(lossless) => println!("{}", lossless),
