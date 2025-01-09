@@ -5,8 +5,9 @@
 mod cmd;
 mod index;
 
-use std::{fs, io::stdout};
+use std::{fs, io::stdout, process::ExitCode};
 
+use anyhow::{bail, Context, Result};
 use clap::{CommandFactory, Parser};
 
 use crate::{
@@ -16,12 +17,17 @@ use crate::{
 
 static INDEX_FILENAME: &str = "jumpy.db";
 
-fn fail(message: &str) -> ! {
-    eprintln!("{message}");
-    std::process::exit(1)
+fn main() -> ExitCode {
+    match inner_main() {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(err) => {
+            eprintln!("{err:?}");
+            ExitCode::FAILURE
+        }
+    }
 }
 
-fn main() {
+fn inner_main() -> Result<()> {
     let cmd = Command::parse();
 
     let index_file = cmd.index_file.unwrap_or_else(|| {
@@ -31,12 +37,10 @@ fn main() {
     });
 
     let (mut index, source) = if index_file.exists() {
-        let content = fs::read_to_string(&index_file)
-            .unwrap_or_else(|e| fail(&format!("Failed to read index file: {e}")));
+        let content = fs::read_to_string(&index_file).context("Failed to read index file")?;
 
         (
-            Index::decode(&content)
-                .unwrap_or_else(|e| fail(&format!("Failed to decode index: {e}"))),
+            Index::decode(&content).context("Failed to decode index")?,
             content,
         )
     } else {
@@ -45,15 +49,13 @@ fn main() {
 
     match cmd.action {
         Action::Add { path } => {
-            index
-                .add(path)
-                .unwrap_or_else(|e| fail(&format!("Failed to add directory: {e}")));
+            index.add(path).context("Failed to add directory")?;
         }
 
         Action::Inc { path, top } => {
             index
                 .inc(path, top)
-                .unwrap_or_else(|e| fail(&format!("Failed to increment directory: {e}")));
+                .context("Failed to increment directory visit counts")?;
         }
 
         Action::Query {
@@ -62,7 +64,7 @@ fn main() {
             checked,
         } => {
             if query.is_empty() {
-                fail("Please provide a query to search from.");
+                bail!("Please provide a query to search from.");
             }
 
             let result = if checked {
@@ -75,7 +77,7 @@ fn main() {
 
             match result {
                 Some(result) => println!("{result}"),
-                None => fail("No result found"),
+                None => bail!("No result found"),
             }
         }
 
@@ -106,11 +108,8 @@ fn main() {
         }
 
         Action::Del { path } => {
-            let path = Index::canonicalize(path).unwrap_or_else(|err| fail(&err));
-
-            if let Err(err) = index.remove_canonicalized(&path) {
-                eprintln!("{err}");
-            }
+            let path = Index::canonicalize(path)?;
+            index.remove_canonicalized(&path)?;
         }
 
         Action::Clear {} => {
@@ -127,7 +126,7 @@ fn main() {
                 if lossily {
                     println!("{}", index_file.to_string_lossy())
                 } else {
-                    fail("Path to index file contains invalid UTF-8 characters. Use --lossily to print it nonetheless.");
+                    bail!("Path to index file contains invalid UTF-8 characters. Use --lossily to print it nonetheless.");
                 }
             }
         },
@@ -152,7 +151,13 @@ fn main() {
     let updated = index.encode();
 
     if updated != source {
-        fs::write(&index_file, updated)
-            .unwrap_or_else(|e| fail(&format!("Failed to write index file: {e}")))
+        fs::write(&index_file, updated).with_context(|| {
+            format!(
+                "Failed to write index file at path: {}",
+                index_file.display()
+            )
+        })
+    } else {
+        Ok(())
     }
 }

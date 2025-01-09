@@ -3,6 +3,8 @@ use std::{
     path::{Component, Path},
 };
 
+use anyhow::{bail, Context, Result};
+
 pub struct Index {
     scored_entries: BTreeMap<String, u64>,
 }
@@ -14,15 +16,15 @@ impl Index {
         }
     }
 
-    pub fn canonicalize(path: impl AsRef<str>) -> Result<String, String> {
+    pub fn canonicalize(path: impl AsRef<str>) -> Result<String> {
         let path = path.as_ref();
 
         // NOTE: we use 'dunce' to avoid (when possible) UNC paths which may
         //       result in unexpected behaviours
         let path = dunce::canonicalize(path)
-            .map_err(|e| format!("Failed to canonicalize path: {e}"))?
+            .with_context(|| format!("Failed to canonicalize path: {path}"))?
             .to_str()
-            .ok_or_else(|| format!("Path contains invalid UTF-8 characters: {path}"))?
+            .with_context(|| format!("Path contains invalid UTF-8 characters: {path}"))?
             .to_string();
 
         Ok(path)
@@ -33,13 +35,13 @@ impl Index {
         path: String,
         update_score: impl FnOnce(u64) -> u64,
         default_value: u64,
-    ) -> Result<(), String> {
+    ) -> Result<()> {
         if path.is_empty() {
-            return Err("Please provide a valid path.".to_string());
+            bail!("Please provide a valid path.");
         }
 
         if !Path::new(&path).exists() {
-            return Err("Provided directory does not exist.".to_string());
+            bail!("Provided directory does not exist.");
         }
 
         let path = Self::canonicalize(path)?;
@@ -53,6 +55,7 @@ impl Index {
             Entry::Occupied(mut entry) => {
                 *entry.get_mut() = update_score(*entry.get());
             }
+
             Entry::Vacant(entry) => {
                 entry.insert(default_value);
             }
@@ -61,11 +64,11 @@ impl Index {
         Ok(())
     }
 
-    pub fn add(&mut self, path: String) -> Result<(), String> {
+    pub fn add(&mut self, path: String) -> Result<()> {
         self.add_or_inc(path, |score| score, 1)
     }
 
-    pub fn inc(&mut self, path: String, set_top: bool) -> Result<(), String> {
+    pub fn inc(&mut self, path: String, set_top: bool) -> Result<()> {
         self.add_or_inc(
             path,
             |score| {
@@ -175,10 +178,10 @@ impl Index {
         self.scored_entries.iter().map(IndexEntry::from)
     }
 
-    pub fn remove_canonicalized(&mut self, path: &str) -> Result<(), &'static str> {
+    pub fn remove_canonicalized(&mut self, path: &str) -> Result<()> {
         match self.scored_entries.remove(path) {
             Some(_) => Ok(()),
-            None => Err("Provided directory is not registered"),
+            None => bail!("Provided directory is not registered"),
         }
     }
 
@@ -213,7 +216,7 @@ impl Index {
             .join("\n")
     }
 
-    pub fn decode(input: &str) -> Result<Self, String> {
+    pub fn decode(input: &str) -> Result<Self> {
         let mut n = 0;
         let mut scored_entries = BTreeMap::new();
 
@@ -222,16 +225,16 @@ impl Index {
 
             let split = line
                 .find(' ')
-                .ok_or_else(|| format!("Missing whitespace delimited at line {n}"))?;
+                .with_context(|| format!("Missing whitespace delimited at line {n}"))?;
 
             let score = &line[0..split]
                 .parse::<u64>()
-                .map_err(|e| format!("Failed to parse score at line {n}: {e}"))?;
+                .with_context(|| format!("Failed to parse score at line {n}"))?;
 
             let path = &line[split + 1..];
 
             if scored_entries.contains_key(path) {
-                return Err(format!("Duplicate directory entry at line {n}: {path}"));
+                bail!("Duplicate directory entry at line {n}: {path}");
             }
 
             scored_entries.insert(path.to_string(), *score);
