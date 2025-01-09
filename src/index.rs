@@ -14,6 +14,20 @@ impl Index {
         }
     }
 
+    pub fn canonicalize(path: impl AsRef<str>) -> Result<String, String> {
+        let path = path.as_ref();
+
+        // NOTE: we use 'dunce' to avoid (when possible) UNC paths which may
+        //       result in unexpected behaviours
+        let path = dunce::canonicalize(path)
+            .map_err(|e| format!("Failed to canonicalize path: {e}"))?
+            .to_str()
+            .ok_or_else(|| format!("Path contains invalid UTF-8 characters: {path}"))?
+            .to_string();
+
+        Ok(path)
+    }
+
     pub fn add_or_inc(
         &mut self,
         path: String,
@@ -28,13 +42,7 @@ impl Index {
             return Err("Provided directory does not exist.".to_string());
         }
 
-        // NOTE: we use 'dunce' to avoid (when possible) UNC paths which may
-        //       result in unexpected behaviours
-        let path = dunce::canonicalize(&path)
-            .map_err(|e| format!("Failed to canonicalize path: {e}"))?
-            .to_str()
-            .ok_or_else(|| format!("Path contains invalid UTF-8 characters: {path}"))?
-            .to_string();
+        let path = Self::canonicalize(path)?;
 
         // Silently ignore root path
         if path == "/" {
@@ -157,7 +165,7 @@ impl Index {
             .map(|result| result.path.to_string())?;
 
         for path in to_remove {
-            self.remove(&path).unwrap();
+            self.remove_canonicalized(&path).unwrap();
         }
 
         Some(path)
@@ -167,7 +175,7 @@ impl Index {
         self.scored_entries.iter().map(IndexEntry::from)
     }
 
-    pub fn remove(&mut self, path: &str) -> Result<(), &'static str> {
+    pub fn remove_canonicalized(&mut self, path: &str) -> Result<(), &'static str> {
         match self.scored_entries.remove(path) {
             Some(_) => Ok(()),
             None => Err("Provided directory is not registered"),
@@ -184,7 +192,7 @@ impl Index {
         }
 
         for path in to_remove {
-            self.remove(&path).unwrap();
+            self.remove_canonicalized(&path).unwrap();
         }
     }
 

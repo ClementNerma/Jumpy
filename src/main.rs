@@ -106,7 +106,11 @@ fn main() {
         }
 
         Action::Del { path } => {
-            index.remove(&path).unwrap();
+            let path = Index::canonicalize(path).unwrap_or_else(|err| fail(&err));
+
+            if let Err(err) = index.remove_canonicalized(&path) {
+                eprintln!("{err}");
+            }
         }
 
         Action::Clear {} => {
