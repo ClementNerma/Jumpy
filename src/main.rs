@@ -145,6 +145,20 @@ fn inner_main() -> Result<()> {
             let cmd = &mut Command::command();
 
             aot::generate(shell, cmd, cmd.get_name().to_string(), &mut stdout());
+
+            match for_shell {
+                CompletionShellName::Bash => {
+                    // TODO
+                }
+                CompletionShellName::Zsh => println!("{}", include_str!("shells/init.zsh")),
+                CompletionShellName::Fish => println!("{}", include_str!("shells/init.fish")),
+                CompletionShellName::Elvish => {
+                    // TODO
+                }
+                CompletionShellName::PowerShell => {
+                    // TODO
+                }
+            }
         }
     }
 

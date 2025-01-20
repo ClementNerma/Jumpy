@@ -16,29 +16,12 @@ On a small and more realistic example, with 1 thousand directories, it takes abo
 
 ## Setup
 
-For ZSH shells:
-
 ```shell
-function z() {
-    local result=$(jumpy query "$1" --checked --after "$PWD")
+# ZSH
+eval "$(jumpy completions zsh)"
 
-    if [[ -n $result ]]; then
-        export __JUMPY_DONT_REGISTER=1
-        cd "$result"
-        export __JUMPY_DONT_REGISTER=0
-    fi
-}
-
-function jumpy_handler() {
-    if (( $__JUMPY_DONT_REGISTER )); then
-        return
-    fi
-
-    emulate -L zsh
-    jumpy inc "$PWD"
-}
-
-chpwd_functions=(${chpwd_functions[@]} "jumpy_handler")
+# Fish
+jumpy completions fish | source
 ```
 
 This will allow Jumpy to register each change of directory to add them to its database.
@@ -48,6 +31,9 @@ To perform a query and jump to it, just use `z <query>`.
 ## Usage
 
 ```shell
+# [With shell integration] Jumpy to the first directory matching the query
+z <terms>
+
 # Get the most relevant directory from a query
 jumpy query <terms>
 
