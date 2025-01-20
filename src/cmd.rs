@@ -37,7 +37,7 @@ pub enum Action {
 
     #[clap(about = "Find the most relevant directory for the provided query")]
     Query {
-        #[clap()]
+        #[clap(value_hint = ValueHint::Other)]
         query: String,
 
         #[clap(short, long, value_hint = ValueHint::DirPath)]
@@ -80,10 +80,11 @@ pub enum Action {
 
     #[clap(about = "Generate completions for a given shell")]
     Completions {
-        #[clap(help = "Shell to generate completions for")]
+        #[clap(help = "Shell to generate completions for", value_hint = ValueHint::Other)]
         for_shell: CompletionShellName,
     },
 }
+
 #[derive(Clone, Copy, ValueEnum)]
 pub enum CompletionShellName {
     Bash,
