@@ -1,18 +1,18 @@
 use std::{
-    collections::{btree_map::Entry, BTreeMap},
+    collections::{hash_map::Entry, HashMap},
     path::Path,
 };
 
 use anyhow::{bail, Context, Result};
 
 pub struct Index {
-    scored_entries: BTreeMap<String, u64>,
+    scored_entries: HashMap<String, u64>,
 }
 
 impl Index {
     pub fn new() -> Self {
         Self {
-            scored_entries: BTreeMap::new(),
+            scored_entries: HashMap::new(),
         }
     }
 
@@ -88,19 +88,21 @@ impl Index {
         let mut results = self
             .scored_entries
             .iter()
-            .filter(|(path, _)| {
-                Path::new(path)
-                    .file_name()
-                    .map(|filename| filename.to_str().unwrap())
-                    .filter(|filename| filename.to_lowercase().contains(&query))
-                    .is_some()
-            })
             .map(IndexEntry::from)
+            .filter(|entry| matches_query(Path::new(entry.path), &query))
             .collect::<Vec<_>>();
 
         // Sort by score (relevancy)
         results.sort_by_key(|entry| entry.score);
         results.reverse();
+
+        // Ignore 'after' parameter if the query doesn't match
+        // Avoids the following problem:
+        //
+        // Scored entries have `/a/1`, `/b` and `/a/2`, in that order
+        // We are in directory `/b` for whatever reason
+        // We query `a`, we'll end up in `/a/2` instead of `/a/1`
+        let after = after.filter(|after| matches_query(Path::new(after), &query));
 
         if let Some(after) = after {
             if let Some(index) = results.iter().position(|entry| entry.path == after) {
@@ -175,7 +177,7 @@ impl Index {
     }
 
     pub fn clear(&mut self) {
-        self.scored_entries = BTreeMap::new();
+        self.scored_entries = HashMap::new();
     }
 
     pub fn encode(&self) -> String {
@@ -189,7 +191,7 @@ impl Index {
 
     pub fn decode(input: &str) -> Result<Self> {
         let mut n = 0;
-        let mut scored_entries = BTreeMap::new();
+        let mut scored_entries = HashMap::new();
 
         for line in input.lines() {
             n += 1;
@@ -228,4 +230,12 @@ impl<'a> From<(&'a String, &'a u64)> for IndexEntry<'a> {
             score: *iter_entry.1,
         }
     }
+}
+
+fn matches_query(path: &Path, query: &str) -> bool {
+    Path::new(path)
+        .file_name()
+        .map(|filename| filename.to_str().unwrap())
+        .filter(|filename| filename.to_lowercase().contains(query))
+        .is_some()
 }
