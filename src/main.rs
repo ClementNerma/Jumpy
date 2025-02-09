@@ -118,7 +118,7 @@ fn inner_main() -> Result<()> {
 
         Action::Cleanup => index.cleanup(),
 
-        Action::Export => index.export(),
+        Action::Export => println!("{}", index.encode()),
 
         Action::Path { lossily } => match index_file.to_str() {
             Some(lossless) => println!("{}", lossless),
