@@ -1,6 +1,6 @@
 use std::{
     collections::{btree_map::Entry, BTreeMap},
-    path::{Component, Path},
+    path::Path,
 };
 
 use anyhow::{bail, Context, Result};
@@ -98,47 +98,19 @@ impl Index {
             .map(IndexEntry::from)
             .collect::<Vec<_>>();
 
-        let skip = match after {
-            Some(after) => match results.iter().position(|result| result.path == after) {
-                Some(index) => {
-                    results.drain(0..=index);
+        // Sort by score (relevancy)
+        results.sort_by_key(|entry| entry.score);
+        results.reverse();
 
-                    self.scored_entries
-                        .iter()
-                        .position(|(path, _)| path == after)
-                        .unwrap()
-                        + 1
-                }
-
-                None => 0,
-            },
-
-            None => 0,
-        };
-
-        results.extend(
-            self.scored_entries
-                .iter()
-                .skip(skip)
-                .filter(move |(path, _)| {
-                    if let Some(after) = after {
-                        if path.starts_with(after) {
-                            return false;
-                        }
-                    }
-
-                    Path::new(path).components().any(|component| {
-                        if let Component::Normal(component) = component {
-                            if let Some(component) = component.to_str() {
-                                return component.to_lowercase().contains(&query);
-                            }
-                        }
-
-                        false
-                    })
-                })
-                .map(IndexEntry::from),
-        );
+        if let Some(after) = after {
+            if let Some(index) = results.iter().position(|entry| entry.path == after) {
+                // First we remove the results that are prior to the provided path...
+                let evicted = results.drain(0..=index).collect::<Vec<_>>();
+                // ...then we add them at the back
+                // This makes it cyclic: when the last item is reached, it goes back to the beginning of the list
+                results.extend(evicted);
+            }
+        }
 
         results
     }
