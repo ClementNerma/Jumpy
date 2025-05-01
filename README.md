@@ -6,7 +6,7 @@ It is heavily inspired by [Zoxide](https://github.com/ajeetdsouza/zoxide/) but i
 
 In its current version it is mostly intended for my personal use, if I find to work well enough I'll improve the documentation and add new features.
 
-Updates can be found in [the changelog](CHANGELOG.md) or in the [releases](https://github.com/ClementNerma/Jumpy/releases).
+Updates can be found in the [releases](https://github.com/ClementNerma/Jumpy/releases).
 
 ## Performance
 
