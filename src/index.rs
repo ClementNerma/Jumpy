@@ -40,8 +40,8 @@ impl Index {
             bail!("Please provide a valid path.");
         }
 
-        if !Path::new(&path).exists() {
-            bail!("Provided directory does not exist.");
+        if !Path::new(&path).is_dir() {
+            bail!("Provided path does not exist or is not a directory.");
         }
 
         let path = Self::canonicalize(path)?;
@@ -132,7 +132,7 @@ impl Index {
             .query_all(query, after)
             .into_iter()
             .find(|result| {
-                if Path::new(result.path).exists() {
+                if Path::new(result.path).is_dir() {
                     true
                 } else {
                     to_remove.push(result.path.to_string());
