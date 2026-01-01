@@ -1,9 +1,9 @@
 use std::{
-    collections::{hash_map::Entry, HashMap},
+    collections::{HashMap, hash_map::Entry},
     path::Path,
 };
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 
 pub struct Index {
     scored_entries: HashMap<String, u64>,
@@ -82,7 +82,7 @@ impl Index {
         )
     }
 
-    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry> {
+    pub fn query_all(&self, query: &str, after: Option<&str>) -> Vec<IndexEntry<'_>> {
         let query = query.to_lowercase();
 
         let mut results = self
@@ -104,14 +104,14 @@ impl Index {
         // We query `a`, we'll end up in `/a/2` instead of `/a/1`
         let after = after.filter(|after| matches_query(Path::new(after), &query));
 
-        if let Some(after) = after {
-            if let Some(index) = results.iter().position(|entry| entry.path == after) {
-                // First we remove the results that are prior to the provided path...
-                let evicted = results.drain(0..=index).collect::<Vec<_>>();
-                // ...then we add them at the back
-                // This makes it cyclic: when the last item is reached, it goes back to the beginning of the list
-                results.extend(evicted);
-            }
+        if let Some(index) =
+            after.and_then(|after| results.iter().position(|entry| entry.path == after))
+        {
+            // First we remove the results that are prior to the provided path...
+            let evicted = results.drain(0..=index).collect::<Vec<_>>();
+            // ...then we add them at the back
+            // This makes it cyclic: when the last item is reached, it goes back to the beginning of the list
+            results.extend(evicted);
         }
 
         results
@@ -148,7 +148,7 @@ impl Index {
         Some(path)
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = IndexEntry> {
+    pub fn iter(&self) -> impl Iterator<Item = IndexEntry<'_>> {
         self.scored_entries.iter().map(IndexEntry::from)
     }
 
